@@ -1,4 +1,4 @@
-module mattermost/mattermost-app-examples/golang/hello-world
+module mostfm
 
 go 1.19
 
