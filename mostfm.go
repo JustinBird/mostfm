@@ -10,8 +10,11 @@ import (
 	"github.com/mattermost/mattermost-plugin-apps/apps"
 	"github.com/mattermost/mattermost-plugin-apps/apps/appclient"
 	"github.com/mattermost/mattermost-plugin-apps/utils/httputils"
+
+	"mostfm/lastfm"
 )
 
+//go:embed icon.png
 var IconData []byte
 
 var Manifest = apps.Manifest{
@@ -58,13 +61,10 @@ var Bindings = []apps.Binding{
 var RegisterForm = apps.Form{
 	Icon:  "icon.png",
 	Title: "Register your LastFM account",
-	Fields: []apps.Field{
-		{
-			Type: "text",
-			Name: "apikey",
-		},
-	},
-	Submit: apps.NewCall("/register"),
+	Submit: apps.NewCall("/register").WithExpand(apps.Expand{
+		ActingUserAccessToken: apps.ExpandAll,
+		ActingUser:            apps.ExpandID,
+	}),
 }
 
 // main sets up the http server, with paths mapped for the static assets, the
@@ -91,14 +91,16 @@ func main() {
 func Register(w http.ResponseWriter, req *http.Request) {
 	c := apps.CallRequest{}
 	fmt.Println("Register called")
-	fmt.Println(req.Body)
 	json.NewDecoder(req.Body).Decode(&c)
+
+	var s lastfm.Secrets
+	lastfm.GetSecrets(&s)
+
+	var t lastfm.LastFMToken
+	lastfm.GetToken(s.APIKey, &t)
 	
-	message := "Hello, world!"
-	v, ok := c.Values["apikey"]
-	if ok && v != nil {
-		message += fmt.Sprintf(" ...and %s!", v)
-	}
+	message := "Authorize this app to access your LastFM account by clicking this link: "
+	message += fmt.Sprintf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", s.APIKey, t.Token)
 	appclient.AsBot(c.Context).DM(c.Context.ActingUser.Id, message)
 
 	httputils.WriteJSON(w,

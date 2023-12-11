@@ -16,7 +16,6 @@ func main() {
 	var t lastfm.LastFMToken
 	lastfm.GetToken(s.APIKey, &t)
 	
-	fmt.Println(t.Token)
 	fmt.Println("Authorize this app to access your LastFM account by clicking this link:")
 	fmt.Printf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", s.APIKey, t.Token)
 	fmt.Println("Press enter to continue")
