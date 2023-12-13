@@ -63,14 +63,15 @@ func createURL(fields []Field) string {
 	return url.String()
 }
 
-func GetSecrets(s *Secrets) {
-	data, err := os.ReadFile("secrets.xml")
+func GetSecrets(secrets_path string) (Secrets, error) {
+	var s Secrets
+	data, err := os.ReadFile(secrets_path)
 	if err != nil {
-		fmt.Println("Failed to read secrets file!")
-		panic(err)
+		return s, err
 	}
 
-	xml.Unmarshal(data, s)
+	xml.Unmarshal(data, &s)
+	return s, nil
 }
 
 func GetToken(apikey string, t *LastFMToken) {

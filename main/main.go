@@ -10,8 +10,11 @@ import (
 )
 
 func main() {
-	var s lastfm.Secrets
-	lastfm.GetSecrets(&s)
+	s, err := lastfm.GetSecrets("secrets.xml")
+	if err != nil {
+		fmt.Println("Failed to get secrets!")
+		panic(err)
+	}
 
 	var t lastfm.LastFMToken
 	lastfm.GetToken(s.APIKey, &t)
