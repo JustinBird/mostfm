@@ -1,7 +1,14 @@
 package lastfm
 
 
-import "testing"
+import (
+	"testing"
+	"net/http/httptest"
+	"net/http"
+	"errors"
+	"io/fs"
+	"reflect"
+)
 
 func TestCreateURL(t *testing.T) {
 	fields := []Field {
@@ -45,45 +52,94 @@ func TestCreateSignature(t *testing.T) {
 }
 
 func TestGetSecrets(t *testing.T) {
-	type GetSecretsTest struct {
+	tests := []struct {
 		Filename             string
 		ExpectedAPIKey       string
 		ExpectedSecret       string
-		ExpectedError        bool
-		ExpectedErrorMessage string
-	}
-	
-	tests := []GetSecretsTest {
+		ExpectedError        error
+	} {
 		{
 			Filename: "doesnt_exist.xml",
 			ExpectedAPIKey: "",
 			ExpectedSecret: "",
-			ExpectedError: true,
-			ExpectedErrorMessage: "open doesnt_exist.xml: no such file or directory",
+			ExpectedError: fs.ErrNotExist,
 		},
 		{
 			Filename: "../secrets_example.xml",
 			ExpectedAPIKey: "API KEY GOES HERE",
 			ExpectedSecret: "SHARED SECRET GOES HERE",
-			ExpectedError: false,
-			ExpectedErrorMessage: "",
+			ExpectedError: nil,
 		},
 	}
 
 	for i, test := range tests {
 		s, err := GetSecrets(test.Filename)
-		if test.ExpectedError && err == nil {
-			t.Errorf("Test #%d: Expected an error but err was nil!", i)
-		} else if test.ExpectedError && err.Error() != test.ExpectedErrorMessage {
-			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, err.Error(), test.ExpectedErrorMessage)
-		} else if !test.ExpectedError && err != nil {
-			t.Errorf("Test #%d: Expected no error but err was not nil!", i)
+		if !errors.Is(err, test.ExpectedError) {
+			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, err.Error(), test.ExpectedError)
 		}
 		
 		if s.APIKey != test.ExpectedAPIKey || s.Secret != test.ExpectedSecret {
 			t.Errorf("Test #%d: API key or secret is wrong!\nExpected: (%s, %s)\nActual: (%s, %s)", i, s.APIKey, s.Secret, test.ExpectedAPIKey, test.ExpectedSecret)
 		} else {
 			t.Logf("Test #%d: API key and secret is correct!", i)
+		}
+	}
+}
+
+func TestGetToken(t *testing.T) {
+	type GetTokenTest struct {
+		APIKey               string
+		Secret               string
+		Server               *httptest.Server
+		ExpectedStatus       string
+		ExpectedToken        *LastFMToken
+		ExpectedLastFMError  LastFMError
+		ExpectedError        error
+	}
+
+	tests := []GetTokenTest {
+		{
+			APIKey: "0123456789",
+			Secret: "abcdefg",
+			Server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`))
+			})),
+			ExpectedToken: &LastFMToken{
+				Status: "ok",
+				Token: "thisismytoken",
+			},
+			ExpectedLastFMError: LastFMError{
+				ErrorMsg: "",
+				ErrorCode: 0,
+			},
+			ExpectedError: nil,
+		},
+	}
+
+	for i, test := range tests {
+		LastFMURL = test.Server.URL
+		token, err := GetToken(test.APIKey)
+		if !errors.Is(err, test.ExpectedError) {
+			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, err.Error(), test.ExpectedError)
+		}
+		
+		if (!reflect.DeepEqual(token.Error, test.ExpectedLastFMError)) {
+			t.Errorf("Test #%d: LastFM error did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedLastFMError, token.Error)
+		} else {
+			t.Logf("Test #%d: LastFM error is correct!", i)
+		}
+
+		if (token.Status != test.ExpectedToken.Status) {
+			t.Errorf("Test #%d: Status did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedToken.Status, token.Status)
+		} else {
+			t.Logf("Test #%d: Status is correct!", i)
+		}
+
+		if (token.Token != test.ExpectedToken.Token) {
+			t.Errorf("Test #%d: Token did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedToken.Token, token.Token)
+		} else {
+			t.Logf("Test #%d: Token is correct!", i)
 		}
 	}
 }
