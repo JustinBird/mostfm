@@ -42,4 +42,16 @@ func main() {
 
 	fmt.Printf("Session status: %s\n", session.Status)
 	fmt.Printf("Error! %s: %d\n", session.Error.ErrorMsg, session.Error.ErrorCode)
+
+	rt, err := lastfm.GetTracks(secrets, session.Name)
+	if err != nil {
+		fmt.Println("Failed to get recent Tracks!")
+		panic(err)
+	} else if rt.Status != "ok" {
+		panic(rt.Error.ErrorMsg)
+	}
+
+	for _, track := range rt.RecentTracks.Tracks {
+		fmt.Printf("%s", track)
+	}
 }

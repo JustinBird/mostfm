@@ -1,13 +1,13 @@
 package lastfm
 
-
 import (
 	"testing"
 	"net/http/httptest"
 	"net/http"
 	"errors"
-	"io/fs"
 	"reflect"
+	"encoding/xml"
+	"io/fs"
 )
 
 func TestCreateURL(t *testing.T) {
@@ -62,7 +62,7 @@ func TestGetSecrets(t *testing.T) {
 			Filename: "doesnt_exist.xml",
 			ExpectedAPIKey: "",
 			ExpectedSecret: "",
-			ExpectedError: fs.ErrNotExist,
+			ExpectedError: &fs.PathError{},
 		},
 		{
 			Filename: "../secrets_example.xml",
@@ -70,16 +70,25 @@ func TestGetSecrets(t *testing.T) {
 			ExpectedSecret: "SHARED SECRET GOES HERE",
 			ExpectedError: nil,
 		},
+		{
+			Filename: "../secrets_broken.xml",
+			ExpectedAPIKey: "",
+			ExpectedSecret: "",
+			ExpectedError: &xml.SyntaxError{},
+		},
 	}
 
 	for i, test := range tests {
+		t.Logf("%s", test.Filename)
+		t.Logf("%s", reflect.TypeOf(test.ExpectedError))
 		s, err := GetSecrets(test.Filename)
-		if !errors.Is(err, test.ExpectedError) {
-			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, err.Error(), test.ExpectedError)
+		t.Logf("%s", reflect.TypeOf(err))
+		if reflect.TypeOf(err) != reflect.TypeOf(test.ExpectedError) {
+			t.Errorf("Test #%d: Expected error did not match!\nExpected: %s\nActual: %s", i, reflect.TypeOf(test.ExpectedError),  reflect.TypeOf(err))
 		}
 		
 		if s.APIKey != test.ExpectedAPIKey || s.Secret != test.ExpectedSecret {
-			t.Errorf("Test #%d: API key or secret is wrong!\nExpected: (%s, %s)\nActual: (%s, %s)", i, s.APIKey, s.Secret, test.ExpectedAPIKey, test.ExpectedSecret)
+			t.Errorf("Test #%d: API key or secret is wrong!\nExpected: (%s, %s)\nActual: (%s, %s)", i, test.ExpectedAPIKey, test.ExpectedSecret, s.APIKey, s.Secret)
 		} else {
 			t.Logf("Test #%d: API key and secret is correct!", i)
 		}
