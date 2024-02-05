@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func GetTracks(secrets Secrets, user string) (LastFMRecentTracks, error) {
+func GetRecentTracks(secrets Secrets, user string) (LastFMRecentTracks, error) {
 	var rt LastFMRecentTracks
 	fields := []Field {
 		{"api_key", secrets.APIKey},

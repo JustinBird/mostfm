@@ -48,7 +48,7 @@ var Bindings = []apps.Binding{
 				Icon:        "http://45.76.25.54:4000/static/mostfm.png",
 				Label:       "mostfm",
 				Description: "Most.fm",
-				Hint:        "[register, now-playing]",
+				Hint:        "[register|now-playing]",
 				Bindings: []apps.Binding{
 					{
 						Label: "register",
@@ -59,10 +59,7 @@ var Bindings = []apps.Binding{
 					},
 					{
 						Label: "now-playing",
-						Submit: apps.NewCall("/now-playing").WithExpand(apps.Expand{
-							ActingUserAccessToken: apps.ExpandAll,
-							ActingUser:            apps.ExpandID,
-						}),
+						Form: &mostfm.NowPlayingForm,
 					},
 				},
 			},
@@ -95,9 +92,9 @@ func main() {
 	http.HandleFunc("/bindings",
 		httputils.DoHandleJSON(apps.NewDataResponse(Bindings)))
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) { mostfm.Register(w, r, secrets) })
-	http.HandleFunc("/validate", func(w http.ResponseWriter, r *http.Request) { mostfm.Validate(w, r, secrets) })
-	http.HandleFunc("/now-playing", mostfm.NowPlaying)
+	http.HandleFunc("/register",    func(w http.ResponseWriter, r *http.Request) { mostfm.Register(w, r, secrets)   })
+	http.HandleFunc("/validate",    func(w http.ResponseWriter, r *http.Request) { mostfm.Validate(w, r, secrets)   })
+	http.HandleFunc("/now-playing", func(w http.ResponseWriter, r *http.Request) { mostfm.NowPlaying(w, r, secrets) })
 
 	addr := ":4000" // matches manifest.json
 	fmt.Println("Listening on", addr)
