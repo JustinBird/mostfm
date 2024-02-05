@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"log"
 
 	"github.com/mattermost/mattermost-plugin-apps/apps"
 	"github.com/mattermost/mattermost-plugin-apps/apps/appclient"
@@ -33,7 +34,6 @@ func Validate(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) 
 			apps.NewErrorResponse(errors.New("Failed to get session token! Please try again.")))
 		return
 	} else if session.Status != "ok" {
-		fmt.Println("%s, %d\n", session.Error.ErrorMsg, session.Error.ErrorCode)
 		if session.Error.ErrorCode == 14 {
 			httputils.WriteJSON(w,
 				apps.NewErrorResponse(errors.New("Your token has not been authorized. Please click the link above and allow Most.fm to access your account.")))
@@ -44,20 +44,17 @@ func Validate(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) 
 		return
 	}
 
-	fmt.Printf("Acting User ID: %s\n", c.Context.ActingUser.Id)
-	fmt.Printf("Acting User username: %s\n", c.Context.ActingUser.Nickname)
-	username_key := fmt.Sprintf("most-fm-username-%s", c.Context.ActingUser.Id)
-	_, err = appclient.AsBot(c.Context).KVSet("fm", username_key, session.Name)
+	err = SetUsername(appclient.AsBot(c.Context), c.Context.ActingUser.Id, session.Name)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		log.Print(err)
 		httputils.WriteJSON(w,
 			apps.NewErrorResponse(errors.New("Failed to store username!")))
 		return
 	}
-	session_key := fmt.Sprintf("most-fm-session-%s", c.Context.ActingUser.Id)
-	_, err = appclient.AsBot(c.Context).KVSet("fm", session_key, session.Key)
+
+	err = SetSession(appclient.AsBot(c.Context), c.Context.ActingUser.Id, session.Key)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		log.Print(err)
 		httputils.WriteJSON(w,
 			apps.NewErrorResponse(errors.New("Failed to store session key!")))
 		return

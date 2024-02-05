@@ -61,12 +61,18 @@ func (d Date) String() string {
 
 type Artist struct {
 	XMLName xml.Name `xml:"artist"`
-	Artist  string   `xml:",chardata"`
+	Name  string   `xml:",chardata"`
 	MBID    string   `xml:"mbid,attr"`
 }
 
 func (a Artist) String() string {
-	return a.Artist
+	return a.Name
+}
+
+type Album struct {
+	XMLName xml.Name `xml:"album"`
+	Name    string   `xml:",chardata"`
+	MBID    string   `xml:"mbid,attr"`
 }
 
 type Track struct {
@@ -74,6 +80,10 @@ type Track struct {
 	NowPlaying bool      `xml:"nowplaying,attr"`
 	Artist     Artist    `xml:"artist"`
 	Name       string    `xml:"name"`
+	MBID       string    `xml:"mbid"`
+	Album      Album     `xml:"album"`
+	URL        string    `xml:"url"`
+	Streamable int       `xml:"streamable"`
 	Date       Date      `xml:"date"`
 }
 
