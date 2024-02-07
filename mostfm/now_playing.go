@@ -50,7 +50,7 @@ func NowPlayingPost(channelID string, rt lastfm.RecentTracks) *model.Post {
 			AuthorLink: fmt.Sprintf("https://last.fm/user/%s", rt.User),
 			Title: "Test",
 			Text: "This is a test!!!",
-			ImageURL: "https://ia601604.us.archive.org/28/items/mbid-76df3287-6cda-33eb-8e9a-044b5e15ffdd/mbid-76df3287-6cda-33eb-8e9a-044b5e15ffdd-829521842_thumb250.jpg",
+			ImageURL: rt.Tracks[0].Images[0].URL,
 		},
 	}
 

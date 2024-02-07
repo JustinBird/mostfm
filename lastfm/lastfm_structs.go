@@ -75,6 +75,11 @@ type Album struct {
 	MBID    string   `xml:"mbid,attr"`
 }
 
+type Image struct {
+	XMLName xml.Name `xml:"image"`
+	URL     string   `xml:",chardata"`
+	Size    string   `xml:"size,attr"`
+}
 type Track struct {
 	XMLName    xml.Name  `xml:"track"`
 	NowPlaying bool      `xml:"nowplaying,attr"`
@@ -85,6 +90,7 @@ type Track struct {
 	URL        string    `xml:"url"`
 	Streamable int       `xml:"streamable"`
 	Date       Date      `xml:"date"`
+	Images     []Image   `xml:"image"`
 }
 
 func (t Track) String() string {
@@ -97,10 +103,11 @@ func (t Track) String() string {
 
 type RecentTracks struct {
 	XMLName    xml.Name `xml:"recenttracks"`
-	User       string   `xml:"user,attr`
+	User       string   `xml:"user,attr"`
 	Page       int      `xml:"page,attr"`
 	PerPage    int      `xml:"perPage,attr"`
-	TotalPages int      `xml:"totalPages,attr`
+	TotalPages int      `xml:"totalPages,attr"`
+	Total      int      `xml:"total,attr"`
 	Tracks     []Track  `xml:"track"`
 }
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"fmt"
-	"os"
+	//"os"
 
 	"mostfm/lastfm"
 )
@@ -15,34 +15,7 @@ func main() {
 		panic(err)
 	}
 
-	token, err := lastfm.GetToken(secrets.APIKey)
-	if err != nil {
-		fmt.Println("Failed to get token!")
-		panic(err)
-	} else if token.Status != "ok" {
-		panic(token.Error.ErrorMsg)
-	}
-
-	fmt.Printf("Token status: %s\n", token.Status)
-	
-	fmt.Println("Authorize MostFM to access your LastFM account by clicking this link:")
-	fmt.Printf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", secrets.APIKey, token.Token)
-	fmt.Println("Press enter to continue")
-	input := bufio.NewScanner(os.Stdin)
-	input.Scan()
-
-	session, err := lastfm.GetSession(secrets, token.Token)
-	if err != nil {
-		fmt.Println("Failed to get session!")
-		panic(err)
-	} else if session.Status != "ok" {
-		panic(session.Error.ErrorMsg)
-	}
-
-	fmt.Printf("Session status: %s\n", session.Status)
-	fmt.Printf("Error! %s: %d\n", session.Error.ErrorMsg, session.Error.ErrorCode)
-
-	rt, err := lastfm.GetRecentTracks(secrets, session.Name)
+	rt, err := lastfm.GetRecentTracks(secrets, "justinbird99")
 	if err != nil {
 		fmt.Println("Failed to get recent Tracks!")
 		panic(err)
@@ -50,7 +23,11 @@ func main() {
 		panic(rt.Error.ErrorMsg)
 	}
 
-	for _, track := range rt.RecentTracks.Tracks {
-		fmt.Printf("%s", track)
+	fmt.Println(rt.RecentTracks.User)
+	fmt.Println(rt.RecentTracks.Tracks[0].MBID)
+
+	for _, image := range rt.RecentTracks.Tracks[0].Images {
+		fmt.Println(image.Size)
+		fmt.Println(image.URL)
 	}
 }
