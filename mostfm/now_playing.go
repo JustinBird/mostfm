@@ -32,30 +32,35 @@ var NowPlayingForm = apps.Form{
 }
 
 //func NowPlayingPost(rt lastfm.RecentTracks) *model.Post {
-func NowPlayingPost(channelID string, rt lastfm.RecentTracks) *model.Post {
+func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, error) {
 	post := model.Post {
-		ChannelId: channelID,
+		ChannelId: c.Context.Channel.Id,
 		Message: "This is a test2!",
 	}
 
+	if len(rt.Tracks) < 1 {
+		return &post, errors.New("No track data found!")
+	}
 	track := rt.Tracks[0]
-	authorName := fmt.Sprintf("Now Playing - %s", rt.User)
+	authorName := fmt.Sprintf("Now Playing - %s", c.Context.ActingUser.Username)
 	if !track.NowPlaying {
-		authorName = fmt.Sprintf("Last Played for %s (%s)", rt.User, track.Date.Date)
+		authorName = fmt.Sprintf("Last Played for %s (%s)", c.Context.ActingUser.Username, track.Date.Date)
 	}
 
 	attachments := []*model.SlackAttachment {
 		{
 			AuthorName: authorName,
 			AuthorLink: fmt.Sprintf("https://last.fm/user/%s", rt.User),
-			Title: "Test",
-			Text: "This is a test!!!",
-			ImageURL: rt.Tracks[0].Images[0].URL,
+			Title: track.Name,
+			TitleLink: track.URL,
+			Text: fmt.Sprintf("**%s** • *%s*", track.Artist.Name, track.Album.Name),
+			ImageURL: rt.Tracks[0].Images[3].URL,
+			Footer: fmt.Sprintf("%d total scrobbles", rt.Total),
 		},
 	}
 
 	model.ParseSlackAttachment(&post, attachments)
-	return &post
+	return &post, nil
 }
 
 func NowPlaying(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) {
@@ -101,9 +106,13 @@ func NowPlaying(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets
 		return
 	}
 
-	//post := NowPlayingPost(rt.RecentTracks)
-	fmt.Println(c.Context.Channel.Id)
-	post := NowPlayingPost(c.Context.Channel.Id, rt.RecentTracks)
+	post, err := NowPlayingPost(c, rt.RecentTracks)
+	if err != nil {
+		httputils.WriteJSON(w,
+			apps.NewErrorResponse(err))
+		return
+	}
+
 	_, err = appclient.AsBot(c.Context).CreatePost(post)
 	if err != nil {
 		httputils.WriteJSON(w,

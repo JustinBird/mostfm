@@ -17,7 +17,7 @@ func GetRecentTracks(secrets Secrets, user string) (LastFMRecentTracks, error) {
 
 	resp, err := http.Get(createURL(fields))
 	if err != nil {
-		fmt.Println("Failed to get session!")
+		fmt.Println("Failed to get session!\n")
 		return rt, err
 	}
 	defer resp.Body.Close()
@@ -27,8 +27,20 @@ func GetRecentTracks(secrets Secrets, user string) (LastFMRecentTracks, error) {
 	}
 
 	body, err := io.ReadAll(resp.Body)
-	//fmt.Printf(string(body))
-	xml.Unmarshal(body, &rt)
+	if err != nil {
+		fmt.Println("Failed to read response body!\n")
+		return rt, err
+	}
+
+	err = xml.Unmarshal(body, &rt)
+	if err != nil {
+		fmt.Println("Failed to parse response!\n")
+		return rt, err
+	}
+
+	if  rt.Status != "ok" {
+		fmt.Printf("Bad status when getting token: %s\n", rt.Status)
+	}
 
 	return rt, nil
 }
