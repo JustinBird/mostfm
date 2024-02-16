@@ -2,10 +2,9 @@ package lastfm
 
 import (
 	"fmt"
-	"net/http"
 	"encoding/xml"
-	"io"
 	"os"
+	"errors"
 )
 
 func GetSecrets(secrets_path string) (Secrets, error) {
@@ -29,30 +28,16 @@ func GetToken(apikey string) (LastFMToken, error) {
 		{"api_key", apikey},
 		{"method",  "auth.getToken"},
 	}
-	resp, err := http.Get(createURL(fields))
-	if err != nil {
-		fmt.Println("Failed to get token!")
-		return t, err
-	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		fmt.Printf("HTTP status code %d\n", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	err := LastFMCall(&fields, &t)
 	if err != nil {
-		return t, err
-	}
-
-	err = xml.Unmarshal(body, &t)
-	if err != nil {
-		return t, err
+		return t, fmt.Errorf("Failed to get token: %w", err)
 	}
 
 	if  t.Status != "ok" {
-		fmt.Printf("Bad status when getting token: %s\n", t.Status)
+		return t, fmt.Errorf("%w Status: %s", ErrLastFMStatus, t.Status)
 	}
+
 	return t, nil
 }
 
@@ -65,26 +50,14 @@ func GetSession(secrets Secrets, token string) (LastFMSession, error) {
 	}
 	createSignature(&fields, secrets.Secret)
 
-	resp, err := http.Get(createURL(fields))
+	err := LastFMCall(&fields, &s)
 	if err != nil {
-		fmt.Println("Failed to get session!")
-		return s, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		fmt.Printf("HTTP status code %d\n", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-
-	err = xml.Unmarshal(body, &s)
-	if err != nil {
+		err := errors.Join(err, errors.New("Failed to get session!"))
 		return s, err
 	}
 
 	if  s.Status != "ok" {
-		fmt.Printf("Bad status when getting token: %s\n", s.Status)
+		fmt.Printf("Bad status when getting session: %s\n", s.Status)
 	}
 
 	return s, nil

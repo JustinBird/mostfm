@@ -117,3 +117,7 @@ type LastFMRecentTracks struct {
 	RecentTracks  RecentTracks `xml:"recenttracks"`
 	Error         LastFMError  `xml:"error"`
 }
+
+type LastFMResponse interface {
+	*LastFMToken | *LastFMSession | *LastFMRecentTracks
+}

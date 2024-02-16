@@ -5,9 +5,19 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"strings"
+	"net/http"
+	"io"
+	"errors"
+	"encoding/xml"
 )
 
 var LastFMURL = "http://ws.audioscrobbler.com/2.0"
+
+var ErrHTTPCall = errors.New("Failed to make Last.fm HTTP call!")
+var ErrHTTPCode = errors.New("Bad HTTP Code!")
+var ErrReadBody = errors.New("Failed to read body!")
+var ErrXMLParse = errors.New("Bad XML data!")
+var ErrLastFMStatus = errors.New("Bad Last.fm status!")
 
 func createSignature(fields *[]Field, shared_secret string) {
 	var data strings.Builder
@@ -31,4 +41,33 @@ func createURL(fields []Field) string {
 		url.WriteString(fmt.Sprintf("%s=%s&", field.Key, field.Value))
 	}
 	return url.String()
+}
+
+func LastFMCall[T LastFMResponse](fields *[]Field, r T) error {
+	resp, err := http.Get(createURL(*fields))
+	if err != nil {
+		return errors.Join(err, ErrHTTPCall)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Join(err, ErrReadBody)
+	}
+
+	// If there's no body to parse then fail, otherwise try to parse it
+	if resp.StatusCode != 200 && len(body) == 0 {
+		return fmt.Errorf("%w HTTP status code %d", ErrHTTPCode, resp.StatusCode)
+	}
+
+	err = xml.Unmarshal(body, r)
+	if err != nil {
+		return errors.Join(err, ErrXMLParse)
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%w HTTP status code %d", ErrHTTPCode, resp.StatusCode)
+	}
+
+	return nil
 }

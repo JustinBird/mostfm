@@ -96,59 +96,84 @@ func TestGetSecrets(t *testing.T) {
 }
 
 func TestGetToken(t *testing.T) {
-	type GetTokenTest struct {
+	tests := []struct {
 		APIKey               string
 		Secret               string
-		Server               *httptest.Server
+		Output               string
+		HTTPCode             int
 		ExpectedStatus       string
-		ExpectedToken        *LastFMToken
+		ExpectedToken        LastFMToken
 		ExpectedLastFMError  LastFMError
 		ExpectedError        error
-	}
-
-	tests := []GetTokenTest {
-		{
+	} {
+		{ // Normal operation
 			APIKey: "0123456789",
-			Secret: "abcdefg",
-			Server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(`<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`))
-			})),
-			ExpectedToken: &LastFMToken{
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`,
+			HTTPCode: http.StatusOK,
+			ExpectedToken: LastFMToken{
+				XMLName: xml.Name{ Local: "lfm" },
 				Status: "ok",
 				Token: "thisismytoken",
-			},
-			ExpectedLastFMError: LastFMError{
-				ErrorMsg: "",
-				ErrorCode: 0,
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
 			},
 			ExpectedError: nil,
+		},
+		{ // Bad HTTP Status
+			APIKey: "0123456789",
+			Output: "",
+			HTTPCode: http.StatusBadRequest,
+			ExpectedToken: LastFMToken{},
+			ExpectedError: ErrHTTPCode,
+		},
+		{ // Bad XML Parse
+			APIKey: "0123456789",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token>`,
+			HTTPCode: http.StatusOK,
+			ExpectedToken: LastFMToken{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "ok",
+				Token: "thisismytoken",
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
+			},
+			ExpectedError: ErrXMLParse,
+		},
+		{ // Bad Last.fm status
+			APIKey: "0123456789",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="fail"><token>thisismytoken</token></lfm>`,
+			HTTPCode: http.StatusOK,
+			ExpectedToken: LastFMToken{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "fail",
+				Token: "thisismytoken",
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
+			},
+			ExpectedError: ErrLastFMStatus,
 		},
 	}
 
 	for i, test := range tests {
-		LastFMURL = test.Server.URL
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(test.HTTPCode)
+			w.Write([]byte(test.Output))
+		}))
+
+		LastFMURL = server.URL
 		token, err := GetToken(test.APIKey)
 		if !errors.Is(err, test.ExpectedError) {
-			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, err.Error(), test.ExpectedError)
-		}
-		
-		if (!reflect.DeepEqual(token.Error, test.ExpectedLastFMError)) {
-			t.Errorf("Test #%d: LastFM error did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedLastFMError, token.Error)
-		} else {
-			t.Logf("Test #%d: LastFM error is correct!", i)
+			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, test.ExpectedError, err)
 		}
 
-		if (token.Status != test.ExpectedToken.Status) {
-			t.Errorf("Test #%d: Status did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedToken.Status, token.Status)
-		} else {
-			t.Logf("Test #%d: Status is correct!", i)
-		}
-
-		if (token.Token != test.ExpectedToken.Token) {
-			t.Errorf("Test #%d: Token did not match expected!\nExpected: %s\nActual: %s", i, test.ExpectedToken.Token, token.Token)
-		} else {
-			t.Logf("Test #%d: Token is correct!", i)
+		if (!reflect.DeepEqual(token, test.ExpectedToken)) {
+			t.Errorf("Test #%d: LastFM token did not match expected!", i)
 		}
 	}
 }

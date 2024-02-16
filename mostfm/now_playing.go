@@ -31,11 +31,9 @@ var NowPlayingForm = apps.Form{
 	}),
 }
 
-//func NowPlayingPost(rt lastfm.RecentTracks) *model.Post {
 func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, error) {
 	post := model.Post {
 		ChannelId: c.Context.Channel.Id,
-		Message: "This is a test2!",
 	}
 
 	if len(rt.Tracks) < 1 {
@@ -54,7 +52,7 @@ func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, er
 			Title: track.Name,
 			TitleLink: track.URL,
 			Text: fmt.Sprintf("**%s** • *%s*", track.Artist.Name, track.Album.Name),
-			ImageURL: rt.Tracks[0].Images[3].URL,
+			ImageURL: rt.Tracks[0].Images[2].URL,
 			Footer: fmt.Sprintf("%d total scrobbles", rt.Total),
 		},
 	}
