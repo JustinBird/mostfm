@@ -7,25 +7,25 @@ import (
 	"errors"
 )
 
-func GetSecrets(secrets_path string) (Secrets, error) {
-	var s Secrets
+func GetSecrets(secrets_path string) (LastFMAPI, error) {
+	var api LastFMAPI
 	data, err := os.ReadFile(secrets_path)
 	if err != nil {
-		return s, err
+		return api, err
 	}
 
-	err = xml.Unmarshal(data, &s)
+	err = xml.Unmarshal(data, &api)
 	if err != nil {
-		return s, err
+		return api, err
 	}
 
-	return s, nil
+	return api, nil
 }
 
-func GetToken(apikey string) (LastFMToken, error) {
+func (api LastFMAPI) GetToken() (LastFMToken, error) {
 	var t LastFMToken
 	fields := []Field {
-		{"api_key", apikey},
+		{"api_key", api.APIKey},
 		{"method",  "auth.getToken"},
 	}
 
@@ -41,14 +41,14 @@ func GetToken(apikey string) (LastFMToken, error) {
 	return t, nil
 }
 
-func GetSession(secrets Secrets, token string) (LastFMSession, error) {
+func (api LastFMAPI) GetSession(token string) (LastFMSession, error) {
 	var s LastFMSession
 	fields := []Field {
-		{"api_key", secrets.APIKey},
+		{"api_key", api.APIKey},
 		{"method", "auth.getSession"},
 		{"token", token},
 	}
-	createSignature(&fields, secrets.Secret)
+	createSignature(&fields, api.Secret)
 
 	err := LastFMCall(&fields, &s)
 	if err != nil {

@@ -5,7 +5,7 @@ import(
 	"encoding/xml"
 )
 
-type Secrets struct {
+type LastFMAPI struct {
 	APIKey string `xml:"apikey"`
 	Secret string `xml:"secret"`
 }

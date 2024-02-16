@@ -8,10 +8,10 @@ import (
 	"errors"
 )
 
-func GetRecentTracks(secrets Secrets, user string) (LastFMRecentTracks, error) {
+func (api LastFMAPI) GetRecentTracks(user string) (LastFMRecentTracks, error) {
 	var rt LastFMRecentTracks
 	fields := []Field {
-		{"api_key", secrets.APIKey},
+		{"api_key", api.APIKey},
 		{"method", "user.getrecenttracks"},
 		{"user", user},
 	}

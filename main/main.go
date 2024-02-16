@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	secrets, err := lastfm.GetSecrets("secrets.xml")
+	api, err := lastfm.GetSecrets("secrets.xml")
 	if err != nil {
 		fmt.Println("Failed to get secrets!")
 		panic(err)
 	}
 
-	rt, err := lastfm.GetRecentTracks(secrets, "justinbird99")
+	rt, err := api.GetRecentTracks("justinbird99")
 	if err != nil {
 		fmt.Println("Failed to get recent Tracks!")
 		panic(err)
@@ -23,7 +23,7 @@ func main() {
 		panic(rt.Error.ErrorMsg)
 	}
 
-	token, err := lastfm.GetToken(secrets.APIKey)
+	token, err := api.GetToken()
 	if err != nil {
 		fmt.Println("Failed to get token!")
 		panic(err)
@@ -34,12 +34,12 @@ func main() {
 	fmt.Printf("Token status: %s\n", token.Status)
 	
 	fmt.Println("Authorize MostFM to access your LastFM account by clicking this link:")
-	fmt.Printf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", secrets.APIKey, token.Token)
+	fmt.Printf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", api.APIKey, token.Token)
 	fmt.Println("Press enter to continue")
 	input := bufio.NewScanner(os.Stdin)
 	input.Scan()
 
-	session, err := lastfm.GetSession(secrets, token.Token)
+	session, err := api.GetSession(token.Token)
 	if err != nil {
 		fmt.Println("Failed to get session!")
 		panic(err)
