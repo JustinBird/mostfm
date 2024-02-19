@@ -67,20 +67,18 @@ var Bindings = []apps.Binding{
 	},
 }
 
-var secrets = lastfm.Secrets{
-	APIKey: "",
-	Secret: "",
-}
+
+var api mostfm.MostFMAPI
 
 // main sets up the http server, with paths mapped for the static assets, the
 // bindings callback, and the send function.
 func main() {
 	var err error
-	secrets, err = lastfm.GetSecrets("secrets.xml")
+	api.LastFM, err = lastfm.NewAPIFromFile("secrets.xml")
 	if err != nil {
 		log.Fatal("Failed to get secrets!")
 	}
-	fmt.Printf("Using API key: %s\n", secrets.APIKey)
+	fmt.Printf("Using API key: %s\n", api.LastFM.APIKey)
 
 	// Serve static assets: the manifest and the icon.
 	http.HandleFunc("/manifest.json",
@@ -92,9 +90,9 @@ func main() {
 	http.HandleFunc("/bindings",
 		httputils.DoHandleJSON(apps.NewDataResponse(Bindings)))
 
-	http.HandleFunc("/register",    func(w http.ResponseWriter, r *http.Request) { mostfm.Register(w, r, secrets)   })
-	http.HandleFunc("/validate",    func(w http.ResponseWriter, r *http.Request) { mostfm.Validate(w, r, secrets)   })
-	http.HandleFunc("/now-playing", func(w http.ResponseWriter, r *http.Request) { mostfm.NowPlaying(w, r, secrets) })
+	http.HandleFunc("/register",    api.Register  )
+	http.HandleFunc("/validate",    api.Validate  )
+	http.HandleFunc("/now-playing", api.NowPlaying)
 
 	addr := ":4000" // matches manifest.json
 	fmt.Println("Listening on", addr)

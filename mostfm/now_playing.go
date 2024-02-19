@@ -40,6 +40,7 @@ func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, er
 		return &post, errors.New("No track data found!")
 	}
 	track := rt.Tracks[0]
+
 	authorName := fmt.Sprintf("Now Playing - %s", c.Context.ActingUser.Username)
 	if !track.NowPlaying {
 		authorName = fmt.Sprintf("Last Played for %s (%s)", c.Context.ActingUser.Username, track.Date.Date)
@@ -61,7 +62,7 @@ func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, er
 	return &post, nil
 }
 
-func NowPlaying(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) {
+func (api MostFMAPI) NowPlaying(w http.ResponseWriter, req *http.Request) {
 	c := apps.CallRequest{}
 	json.NewDecoder(req.Body).Decode(&c)
 
@@ -91,7 +92,7 @@ func NowPlaying(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets
 		}
 	} 
 
-	rt, err := lastfm.GetRecentTracks(secrets, username)
+	rt, err := api.LastFM.GetRecentTracks(username)
 	if err != nil {
 		log.Print(err)
 		httputils.WriteJSON(w,

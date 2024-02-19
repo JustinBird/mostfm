@@ -15,12 +15,15 @@ import (
 	"mostfm/lastfm"
 )
 
-func Register(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) {
+type MostFMAPI struct {
+	LastFM lastfm.LastFMAPI
+}
+
+func (api MostFMAPI) Register(w http.ResponseWriter, req *http.Request) {
 	c := apps.CallRequest{}
-	fmt.Println("Register called")
 	json.NewDecoder(req.Body).Decode(&c)
 
-	token, err := lastfm.GetToken(secrets.APIKey)
+	token, err := api.LastFM.GetToken()
 	if err != nil {
 		httputils.WriteJSON(w,
 			apps.NewErrorResponse(errors.New(fmt.Sprintf("Failed to get LastFM Token. Please try again. (%s)", err))))
@@ -30,7 +33,7 @@ func Register(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) 
 	header := "Welcome to Most.fm!\n" +
 			  "\n" +
 			  "Registering with Most.fm allows us to access your Last.fm account. This is only required for some actions. Follow the steps below:\n" +
-			  fmt.Sprintf("1. Click [here](http://www.last.fm/api/auth/?api_key=%s&token=%s) to be taken to the Last.fm authorization page\n", secrets.APIKey, token.Token) +
+			  fmt.Sprintf("1. Click [here](http://www.last.fm/api/auth/?api_key=%s&token=%s) to be taken to the Last.fm authorization page\n", api.LastFM.APIKey, token.Token) +
 			  "1. If necessary, sign in to your Last.fm account\n" +
 			  "1. Click 'YES, ALLOW ACCESS' on the Last.fm authorization page\n" +
 			  "1. Click 'Submit' on this MatterMost form\n" +

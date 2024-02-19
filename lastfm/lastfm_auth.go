@@ -2,25 +2,8 @@ package lastfm
 
 import (
 	"fmt"
-	"encoding/xml"
-	"os"
 	"errors"
 )
-
-func GetSecrets(secrets_path string) (LastFMAPI, error) {
-	var api LastFMAPI
-	data, err := os.ReadFile(secrets_path)
-	if err != nil {
-		return api, err
-	}
-
-	err = xml.Unmarshal(data, &api)
-	if err != nil {
-		return api, err
-	}
-
-	return api, nil
-}
 
 func (api LastFMAPI) GetToken() (LastFMToken, error) {
 	var t LastFMToken

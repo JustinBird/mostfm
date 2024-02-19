@@ -9,15 +9,39 @@ import (
 	"io"
 	"errors"
 	"encoding/xml"
+	"os"
 )
 
 var LastFMURL = "http://ws.audioscrobbler.com/2.0"
 
+var ErrFileRead = errors.New("Failed to read file!")
 var ErrHTTPCall = errors.New("Failed to make Last.fm HTTP call!")
 var ErrHTTPCode = errors.New("Bad HTTP Code!")
 var ErrReadBody = errors.New("Failed to read body!")
 var ErrXMLParse = errors.New("Bad XML data!")
 var ErrLastFMStatus = errors.New("Bad Last.fm status!")
+
+func NewAPI(api_key, secret string) (LastFMAPI) {
+	return LastFMAPI{
+		APIKey: api_key,
+		Secret: secret,
+	}
+}
+
+func NewAPIFromFile(path string) (LastFMAPI, error) {
+	var api LastFMAPI
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return api, errors.Join(ErrFileRead, err)
+	}
+
+	err = xml.Unmarshal(data, &api)
+	if err != nil {
+		return api, errors.Join(ErrXMLParse, err)
+	}
+
+	return api, nil
+}
 
 func createSignature(fields *[]Field, shared_secret string) {
 	var data strings.Builder

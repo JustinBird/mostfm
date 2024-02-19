@@ -12,13 +12,10 @@ import (
 	"github.com/mattermost/mattermost-plugin-apps/apps/appclient"
 	"github.com/mattermost/mattermost-plugin-apps/utils/httputils"
 	//"github.com/mattermost/mattermost-server/v6/model"
-
-	"mostfm/lastfm"
 )
 
-func Validate(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) {
+func (api MostFMAPI) Validate(w http.ResponseWriter, req *http.Request) {
 	c := apps.CallRequest{}
-	fmt.Println("Validate called")
 	json.NewDecoder(req.Body).Decode(&c)
 
 	token, ok := c.Call.State.(string)
@@ -28,7 +25,7 @@ func Validate(w http.ResponseWriter, req *http.Request, secrets lastfm.Secrets) 
 		return
 	}
 
-	session, err := lastfm.GetSession(secrets, token)
+	session, err := api.LastFM.GetSession(token)
 	if err != nil {
 		httputils.WriteJSON(w,
 			apps.NewErrorResponse(errors.New("Failed to get session token! Please try again.")))
