@@ -105,18 +105,18 @@ func TestNewAPIFromFile(t *testing.T) {
 	}
 }
 
+var api = LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" }
+
 func TestGetToken(t *testing.T) {
 	tests := []struct {
 		API                  LastFMAPI
 		Output               string
 		HTTPCode             int
-		ExpectedStatus       string
 		ExpectedToken        LastFMToken
-		ExpectedLastFMError  LastFMError
 		ExpectedError        error
 	} {
 		{ // Normal operation
-			API: LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" },
+			API: api,
 			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -131,14 +131,14 @@ func TestGetToken(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{ // Bad HTTP Status
-			API: LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" },
+			API: api,
 			Output: "",
 			HTTPCode: http.StatusBadRequest,
 			ExpectedToken: LastFMToken{},
 			ExpectedError: ErrHTTPCode,
 		},
 		{ // Bad XML Parse
-			API: LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" },
+			API: api,
 			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -153,7 +153,7 @@ func TestGetToken(t *testing.T) {
 			ExpectedError: ErrXMLParse,
 		},
 		{ // Bad Last.fm status
-			API: LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" },
+			API: api,
 			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="fail"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -183,6 +183,116 @@ func TestGetToken(t *testing.T) {
 
 		if (!reflect.DeepEqual(token, test.ExpectedToken)) {
 			t.Errorf("Test #%d: LastFM token did not match expected!", i)
+		}
+	}
+}
+
+func TestGetSession(t *testing.T) {
+	tests := []struct {
+		API                  LastFMAPI
+		Token                string
+		Output               string
+		HTTPCode             int
+		ExpectedSession      LastFMSession
+		ExpectedError        error
+	} {
+		{ // Normal operation
+			API: api,
+			Token: "token",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
+			HTTPCode: http.StatusOK,
+			ExpectedSession: LastFMSession{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "ok",
+				Name: "mostfm",
+				Key: "session-key",
+				Subscriber: 1,
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
+			},
+			ExpectedError: nil,
+		},
+		{ // Bad HTTP Status
+			API: api,
+			Token: "token",
+			Output: "",
+			HTTPCode: http.StatusBadRequest,
+			ExpectedSession: LastFMSession{},
+			ExpectedError: ErrHTTPCode,
+		},
+		{ // Bad HTTP Status but output
+			API: api,
+			Token: "token",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
+			HTTPCode: http.StatusBadRequest,
+			ExpectedSession: LastFMSession{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "ok",
+				Name: "mostfm",
+				Key: "session-key",
+				Subscriber: 1,
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
+			},
+			ExpectedError: ErrHTTPCode,
+		},
+		{ // Bad XML Parse
+			API: api,
+			Token: "token",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>0</subscriber></session>`,
+			HTTPCode: http.StatusOK,
+			ExpectedSession: LastFMSession{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "ok",
+				Name: "mostfm",
+				Key: "session-key",
+				Subscriber: 0,
+				Error: LastFMError{
+					ErrorMsg: "",
+					ErrorCode: 0,
+				},
+			},
+			ExpectedError: ErrXMLParse,
+		},
+		{ // Bad Last.fm status with error
+			API: api,
+			Token: "token",
+			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="failed"><error code="14">Unauthorized Token - This token has not been authorized</error></lfm>`,
+			HTTPCode: http.StatusOK,
+			ExpectedSession: LastFMSession{
+				XMLName: xml.Name{ Local: "lfm" },
+				Status: "failed",
+				Name: "",
+				Key: "",
+				Subscriber: 0,
+				Error: LastFMError{
+					XMLName: xml.Name{ Local: "error" },
+					ErrorMsg: "Unauthorized Token - This token has not been authorized",
+					ErrorCode: 14,
+				},
+			},
+			ExpectedError: ErrLastFMStatus,
+		},
+	}
+
+	for i, test := range tests {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(test.HTTPCode)
+			w.Write([]byte(test.Output))
+		}))
+
+		LastFMURL = server.URL
+		session, err := test.API.GetSession(test.Token)
+		if !errors.Is(err, test.ExpectedError) {
+			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, test.ExpectedError, err)
+		}
+
+		if (!reflect.DeepEqual(session, test.ExpectedSession)) {
+			t.Errorf("Test #%d: LastFM session did not match expected!", i)
 		}
 	}
 }

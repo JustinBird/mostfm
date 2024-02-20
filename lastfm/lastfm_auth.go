@@ -40,7 +40,7 @@ func (api LastFMAPI) GetSession(token string) (LastFMSession, error) {
 	}
 
 	if  s.Status != "ok" {
-		fmt.Printf("Bad status when getting session: %s\n", s.Status)
+		return s, fmt.Errorf("%w Status: %s", ErrLastFMStatus, s.Status)
 	}
 
 	return s, nil

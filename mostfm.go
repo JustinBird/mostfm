@@ -67,7 +67,6 @@ var Bindings = []apps.Binding{
 	},
 }
 
-
 var api mostfm.MostFMAPI
 
 // main sets up the http server, with paths mapped for the static assets, the

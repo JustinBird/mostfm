@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	api, err := lastfm.GetSecrets("secrets.xml")
+	api, err := lastfm.NewAPIFromFile("secrets.xml")
 	if err != nil {
 		fmt.Println("Failed to get secrets!")
 		panic(err)
