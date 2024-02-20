@@ -14,12 +14,12 @@ import (
 
 var LastFMURL = "http://ws.audioscrobbler.com/2.0"
 
-var ErrFileRead = errors.New("Failed to read file!")
-var ErrHTTPCall = errors.New("Failed to make Last.fm HTTP call!")
-var ErrHTTPCode = errors.New("Bad HTTP Code!")
-var ErrReadBody = errors.New("Failed to read body!")
-var ErrXMLParse = errors.New("Bad XML data!")
-var ErrLastFMStatus = errors.New("Bad Last.fm status!")
+var ErrFileRead = errors.New("failed to read file")
+var ErrHTTPCall = errors.New("failed to make Last.fm HTTP call")
+var ErrHTTPCode = errors.New("bad HTTP Code")
+var ErrReadBody = errors.New("failed to read body")
+var ErrXMLParse = errors.New("bad XML data")
+var ErrLastFMStatus = errors.New("bad Last.fm status")
 
 func NewAPI(api_key, secret string) LastFMAPI {
 	return LastFMAPI{

@@ -14,7 +14,7 @@ func (api LastFMAPI) GetToken() (LastFMToken, error) {
 
 	err := LastFMCall(&fields, &t)
 	if err != nil {
-		return t, fmt.Errorf("Failed to get token: %w", err)
+		return t, fmt.Errorf("failed to get token: %w", err)
 	}
 
 	if t.Status != "ok" {
@@ -35,7 +35,7 @@ func (api LastFMAPI) GetSession(token string) (LastFMSession, error) {
 
 	err := LastFMCall(&fields, &s)
 	if err != nil {
-		err := errors.Join(err, errors.New("Failed to get session!"))
+		err := errors.Join(err, errors.New("failed to get session"))
 		return s, err
 	}
 
