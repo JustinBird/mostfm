@@ -26,13 +26,13 @@ var NowPlayingForm = apps.Form{
 		},
 	},
 	Submit: apps.NewCall("/now-playing").WithExpand(apps.Expand{
-		ActingUser:            apps.ExpandSummary,
-		Channel:               apps.ExpandSummary,
+		ActingUser: apps.ExpandSummary,
+		Channel:    apps.ExpandSummary,
 	}),
 }
 
 func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, error) {
-	post := model.Post {
+	post := model.Post{
 		ChannelId: c.Context.Channel.Id,
 	}
 
@@ -46,15 +46,15 @@ func NowPlayingPost(c apps.CallRequest, rt lastfm.RecentTracks) (*model.Post, er
 		authorName = fmt.Sprintf("Last Played for %s (%s)", c.Context.ActingUser.Username, track.Date.Date)
 	}
 
-	attachments := []*model.SlackAttachment {
+	attachments := []*model.SlackAttachment{
 		{
 			AuthorName: authorName,
 			AuthorLink: fmt.Sprintf("https://last.fm/user/%s", rt.User),
-			Title: track.Name,
-			TitleLink: track.URL,
-			Text: fmt.Sprintf("**%s** • *%s*", track.Artist.Name, track.Album.Name),
-			ImageURL: rt.Tracks[0].Images[2].URL,
-			Footer: fmt.Sprintf("%d total scrobbles", rt.Total),
+			Title:      track.Name,
+			TitleLink:  track.URL,
+			Text:       fmt.Sprintf("**%s** • *%s*", track.Artist.Name, track.Album.Name),
+			ImageURL:   rt.Tracks[0].Images[2].URL,
+			Footer:     fmt.Sprintf("%d total scrobbles", rt.Total),
 		},
 	}
 
@@ -90,7 +90,7 @@ func (api MostFMAPI) NowPlaying(w http.ResponseWriter, req *http.Request) {
 				apps.NewErrorResponse(errors.New("No username specified and could not find a registered username! Please specify a username or register with Most.fm.")))
 			return
 		}
-	} 
+	}
 
 	rt, err := api.LastFM.GetRecentTracks(username)
 	if err != nil {
@@ -127,4 +127,4 @@ func (api MostFMAPI) NowPlaying(w http.ResponseWriter, req *http.Request) {
 	}
 	httputils.WriteJSON(w,
 		apps.NewTextResponse(message))
-}	
+}

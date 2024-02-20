@@ -1,17 +1,17 @@
 package lastfm
 
 import (
-	"testing"
-	"net/http/httptest"
-	"net/http"
-	"errors"
-	"reflect"
 	"encoding/xml"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"reflect"
+	"testing"
 )
 
 func TestCreateURL(t *testing.T) {
-	fields := []Field {
+	fields := []Field{
 		{"api_key", "0123456789"},
 		{"method", "test"},
 		{"token", "abcdef"},
@@ -27,7 +27,7 @@ func TestCreateURL(t *testing.T) {
 }
 
 func TestCreateSignature(t *testing.T) {
-	fields := []Field {
+	fields := []Field{
 		{"api_key", "0123456789"},
 		{"method", "test"},
 		{"token", "abcdef"},
@@ -57,24 +57,24 @@ func TestNewAPIFromFile(t *testing.T) {
 		ExpectedAPIKey string
 		ExpectedSecret string
 		ExpectedError  error
-	} {
+	}{
 		{
-			FileContents: "",
+			FileContents:   "",
 			ExpectedAPIKey: "",
 			ExpectedSecret: "",
-			ExpectedError: ErrFileRead,
+			ExpectedError:  ErrFileRead,
 		},
 		{
-			FileContents: "<secrets><apikey>API KEY GOES HERE</apikey><secret>SHARED SECRET GOES HERE</secret></secrets>",
+			FileContents:   "<secrets><apikey>API KEY GOES HERE</apikey><secret>SHARED SECRET GOES HERE</secret></secrets>",
 			ExpectedAPIKey: "API KEY GOES HERE",
 			ExpectedSecret: "SHARED SECRET GOES HERE",
-			ExpectedError: nil,
+			ExpectedError:  nil,
 		},
 		{
-			FileContents: "<secrets><apikey>API KEY GOES HERE<secret>SHARED SECRET GOES HERE</secrets>",
+			FileContents:   "<secrets><apikey>API KEY GOES HERE<secret>SHARED SECRET GOES HERE</secrets>",
 			ExpectedAPIKey: "",
 			ExpectedSecret: "",
-			ExpectedError: ErrXMLParse,
+			ExpectedError:  ErrXMLParse,
 		},
 	}
 
@@ -98,70 +98,70 @@ func TestNewAPIFromFile(t *testing.T) {
 		if !errors.Is(err, test.ExpectedError) {
 			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, test.ExpectedError, err)
 		}
-		
+
 		if s.APIKey != test.ExpectedAPIKey || s.Secret != test.ExpectedSecret {
 			t.Errorf("Test #%d: API key or secret is wrong!\nExpected: (%s, %s)\nActual: (%s, %s)", i, test.ExpectedAPIKey, test.ExpectedSecret, s.APIKey, s.Secret)
 		}
 	}
 }
 
-var api = LastFMAPI{ APIKey: "0123456789", Secret: "abcdefg" }
+var api = LastFMAPI{APIKey: "0123456789", Secret: "abcdefg"}
 
 func TestGetToken(t *testing.T) {
 	tests := []struct {
-		API                  LastFMAPI
-		Output               string
-		HTTPCode             int
-		ExpectedToken        LastFMToken
-		ExpectedError        error
-	} {
+		API           LastFMAPI
+		Output        string
+		HTTPCode      int
+		ExpectedToken LastFMToken
+		ExpectedError error
+	}{
 		{ // Normal operation
-			API: api,
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`,
+			API:      api,
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "ok",
-				Token: "thisismytoken",
+				XMLName: xml.Name{Local: "lfm"},
+				Status:  "ok",
+				Token:   "thisismytoken",
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
 			ExpectedError: nil,
 		},
 		{ // Bad HTTP Status
-			API: api,
-			Output: "",
-			HTTPCode: http.StatusBadRequest,
+			API:           api,
+			Output:        "",
+			HTTPCode:      http.StatusBadRequest,
 			ExpectedToken: LastFMToken{},
 			ExpectedError: ErrHTTPCode,
 		},
 		{ // Bad XML Parse
-			API: api,
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token>`,
+			API:      api,
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "ok",
-				Token: "thisismytoken",
+				XMLName: xml.Name{Local: "lfm"},
+				Status:  "ok",
+				Token:   "thisismytoken",
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
 			ExpectedError: ErrXMLParse,
 		},
 		{ // Bad Last.fm status
-			API: api,
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="fail"><token>thisismytoken</token></lfm>`,
+			API:      api,
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="fail"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "fail",
-				Token: "thisismytoken",
+				XMLName: xml.Name{Local: "lfm"},
+				Status:  "fail",
+				Token:   "thisismytoken",
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
@@ -181,7 +181,7 @@ func TestGetToken(t *testing.T) {
 			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, test.ExpectedError, err)
 		}
 
-		if (!reflect.DeepEqual(token, test.ExpectedToken)) {
+		if !reflect.DeepEqual(token, test.ExpectedToken) {
 			t.Errorf("Test #%d: LastFM token did not match expected!", i)
 		}
 	}
@@ -189,89 +189,89 @@ func TestGetToken(t *testing.T) {
 
 func TestGetSession(t *testing.T) {
 	tests := []struct {
-		API                  LastFMAPI
-		Token                string
-		Output               string
-		HTTPCode             int
-		ExpectedSession      LastFMSession
-		ExpectedError        error
-	} {
+		API             LastFMAPI
+		Token           string
+		Output          string
+		HTTPCode        int
+		ExpectedSession LastFMSession
+		ExpectedError   error
+	}{
 		{ // Normal operation
-			API: api,
-			Token: "token",
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
+			API:      api,
+			Token:    "token",
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedSession: LastFMSession{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "ok",
-				Name: "mostfm",
-				Key: "session-key",
+				XMLName:    xml.Name{Local: "lfm"},
+				Status:     "ok",
+				Name:       "mostfm",
+				Key:        "session-key",
 				Subscriber: 1,
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
 			ExpectedError: nil,
 		},
 		{ // Bad HTTP Status
-			API: api,
-			Token: "token",
-			Output: "",
-			HTTPCode: http.StatusBadRequest,
+			API:             api,
+			Token:           "token",
+			Output:          "",
+			HTTPCode:        http.StatusBadRequest,
 			ExpectedSession: LastFMSession{},
-			ExpectedError: ErrHTTPCode,
+			ExpectedError:   ErrHTTPCode,
 		},
 		{ // Bad HTTP Status but output
-			API: api,
-			Token: "token",
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
+			API:      api,
+			Token:    "token",
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
 			HTTPCode: http.StatusBadRequest,
 			ExpectedSession: LastFMSession{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "ok",
-				Name: "mostfm",
-				Key: "session-key",
+				XMLName:    xml.Name{Local: "lfm"},
+				Status:     "ok",
+				Name:       "mostfm",
+				Key:        "session-key",
 				Subscriber: 1,
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
 			ExpectedError: ErrHTTPCode,
 		},
 		{ // Bad XML Parse
-			API: api,
-			Token: "token",
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>0</subscriber></session>`,
+			API:      api,
+			Token:    "token",
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>0</subscriber></session>`,
 			HTTPCode: http.StatusOK,
 			ExpectedSession: LastFMSession{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "ok",
-				Name: "mostfm",
-				Key: "session-key",
+				XMLName:    xml.Name{Local: "lfm"},
+				Status:     "ok",
+				Name:       "mostfm",
+				Key:        "session-key",
 				Subscriber: 0,
 				Error: LastFMError{
-					ErrorMsg: "",
+					ErrorMsg:  "",
 					ErrorCode: 0,
 				},
 			},
 			ExpectedError: ErrXMLParse,
 		},
 		{ // Bad Last.fm status with error
-			API: api,
-			Token: "token",
-			Output: `<?xml version="1.0" encoding="UTF-8"?><lfm status="failed"><error code="14">Unauthorized Token - This token has not been authorized</error></lfm>`,
+			API:      api,
+			Token:    "token",
+			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="failed"><error code="14">Unauthorized Token - This token has not been authorized</error></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedSession: LastFMSession{
-				XMLName: xml.Name{ Local: "lfm" },
-				Status: "failed",
-				Name: "",
-				Key: "",
+				XMLName:    xml.Name{Local: "lfm"},
+				Status:     "failed",
+				Name:       "",
+				Key:        "",
 				Subscriber: 0,
 				Error: LastFMError{
-					XMLName: xml.Name{ Local: "error" },
-					ErrorMsg: "Unauthorized Token - This token has not been authorized",
+					XMLName:   xml.Name{Local: "error"},
+					ErrorMsg:  "Unauthorized Token - This token has not been authorized",
 					ErrorCode: 14,
 				},
 			},
@@ -291,7 +291,7 @@ func TestGetSession(t *testing.T) {
 			t.Errorf("Test #%d: Expected error message did not match!\nExpected: %s\nActual: %s", i, test.ExpectedError, err)
 		}
 
-		if (!reflect.DeepEqual(session, test.ExpectedSession)) {
+		if !reflect.DeepEqual(session, test.ExpectedSession) {
 			t.Errorf("Test #%d: LastFM session did not match expected!", i)
 		}
 	}

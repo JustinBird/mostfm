@@ -1,8 +1,8 @@
 package lastfm
 
-import(
-	"fmt"
+import (
 	"encoding/xml"
+	"fmt"
 )
 
 type LastFMAPI struct {
@@ -33,7 +33,7 @@ type LastFMToken struct {
 }
 
 func (t LastFMToken) String() string {
-	if (t.Status == "ok") {
+	if t.Status == "ok" {
 		return fmt.Sprintf("Token %s (%s)", t.Status, t.Token)
 	} else {
 		return t.Error.String()
@@ -61,7 +61,7 @@ func (d Date) String() string {
 
 type Artist struct {
 	XMLName xml.Name `xml:"artist"`
-	Name  string   `xml:",chardata"`
+	Name    string   `xml:",chardata"`
 	MBID    string   `xml:"mbid,attr"`
 }
 
@@ -81,16 +81,16 @@ type Image struct {
 	Size    string   `xml:"size,attr"`
 }
 type Track struct {
-	XMLName    xml.Name  `xml:"track"`
-	NowPlaying bool      `xml:"nowplaying,attr"`
-	Artist     Artist    `xml:"artist"`
-	Name       string    `xml:"name"`
-	MBID       string    `xml:"mbid"`
-	Album      Album     `xml:"album"`
-	URL        string    `xml:"url"`
-	Streamable int       `xml:"streamable"`
-	Date       Date      `xml:"date"`
-	Images     []Image   `xml:"image"`
+	XMLName    xml.Name `xml:"track"`
+	NowPlaying bool     `xml:"nowplaying,attr"`
+	Artist     Artist   `xml:"artist"`
+	Name       string   `xml:"name"`
+	MBID       string   `xml:"mbid"`
+	Album      Album    `xml:"album"`
+	URL        string   `xml:"url"`
+	Streamable int      `xml:"streamable"`
+	Date       Date     `xml:"date"`
+	Images     []Image  `xml:"image"`
 }
 
 func (t Track) String() string {
@@ -112,10 +112,10 @@ type RecentTracks struct {
 }
 
 type LastFMRecentTracks struct {
-	XMLName        xml.Name    `xml:"lfm"`
-	Status        string       `xml:"status,attr"`
-	RecentTracks  RecentTracks `xml:"recenttracks"`
-	Error         LastFMError  `xml:"error"`
+	XMLName      xml.Name     `xml:"lfm"`
+	Status       string       `xml:"status,attr"`
+	RecentTracks RecentTracks `xml:"recenttracks"`
+	Error        LastFMError  `xml:"error"`
 }
 
 type LastFMResponse interface {

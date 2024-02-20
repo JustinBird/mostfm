@@ -20,10 +20,10 @@ import (
 var IconData []byte
 
 var Manifest = apps.Manifest{
-	AppID: "most-fm",
-	Version: "v0.0.1",
+	AppID:       "most-fm",
+	Version:     "v0.0.1",
 	DisplayName: "Most.fm",
-	Icon: "mostfm.png",
+	Icon:        "mostfm.png",
 	HomepageURL: "https://github.com/JustinBird/most-fm",
 	RequestedPermissions: []apps.Permission{
 		apps.PermissionActAsBot,
@@ -59,7 +59,7 @@ var Bindings = []apps.Binding{
 					},
 					{
 						Label: "now-playing",
-						Form: &mostfm.NowPlayingForm,
+						Form:  &mostfm.NowPlayingForm,
 					},
 				},
 			},
@@ -89,8 +89,8 @@ func main() {
 	http.HandleFunc("/bindings",
 		httputils.DoHandleJSON(apps.NewDataResponse(Bindings)))
 
-	http.HandleFunc("/register",    api.Register  )
-	http.HandleFunc("/validate",    api.Validate  )
+	http.HandleFunc("/register", api.Register)
+	http.HandleFunc("/validate", api.Validate)
 	http.HandleFunc("/now-playing", api.NowPlaying)
 
 	addr := ":4000" // matches manifest.json

@@ -1,15 +1,15 @@
 package lastfm
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 func (api LastFMAPI) GetToken() (LastFMToken, error) {
 	var t LastFMToken
-	fields := []Field {
+	fields := []Field{
 		{"api_key", api.APIKey},
-		{"method",  "auth.getToken"},
+		{"method", "auth.getToken"},
 	}
 
 	err := LastFMCall(&fields, &t)
@@ -17,7 +17,7 @@ func (api LastFMAPI) GetToken() (LastFMToken, error) {
 		return t, fmt.Errorf("Failed to get token: %w", err)
 	}
 
-	if  t.Status != "ok" {
+	if t.Status != "ok" {
 		return t, fmt.Errorf("%w Status: %s", ErrLastFMStatus, t.Status)
 	}
 
@@ -26,7 +26,7 @@ func (api LastFMAPI) GetToken() (LastFMToken, error) {
 
 func (api LastFMAPI) GetSession(token string) (LastFMSession, error) {
 	var s LastFMSession
-	fields := []Field {
+	fields := []Field{
 		{"api_key", api.APIKey},
 		{"method", "auth.getSession"},
 		{"token", token},
@@ -39,7 +39,7 @@ func (api LastFMAPI) GetSession(token string) (LastFMSession, error) {
 		return s, err
 	}
 
-	if  s.Status != "ok" {
+	if s.Status != "ok" {
 		return s, fmt.Errorf("%w Status: %s", ErrLastFMStatus, s.Status)
 	}
 

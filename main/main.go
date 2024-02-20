@@ -32,7 +32,7 @@ func main() {
 	}
 
 	fmt.Printf("Token status: %s\n", token.Status)
-	
+
 	fmt.Println("Authorize MostFM to access your LastFM account by clicking this link:")
 	fmt.Printf("http://www.last.fm/api/auth/?api_key=%s&token=%s\n", api.APIKey, token.Token)
 	fmt.Println("Press enter to continue")

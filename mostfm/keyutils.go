@@ -3,6 +3,7 @@ package mostfm
 import (
 	_ "embed"
 	"fmt"
+
 	"github.com/mattermost/mattermost-plugin-apps/apps/appclient"
 )
 

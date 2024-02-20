@@ -1,15 +1,15 @@
 package lastfm
 
 import (
-	"fmt"
 	"crypto/md5"
 	"encoding/hex"
-	"strings"
-	"net/http"
-	"io"
-	"errors"
 	"encoding/xml"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 )
 
 var LastFMURL = "http://ws.audioscrobbler.com/2.0"
@@ -21,7 +21,7 @@ var ErrReadBody = errors.New("Failed to read body!")
 var ErrXMLParse = errors.New("Bad XML data!")
 var ErrLastFMStatus = errors.New("Bad Last.fm status!")
 
-func NewAPI(api_key, secret string) (LastFMAPI) {
+func NewAPI(api_key, secret string) LastFMAPI {
 	return LastFMAPI{
 		APIKey: api_key,
 		Secret: secret,
@@ -54,7 +54,7 @@ func createSignature(fields *[]Field, shared_secret string) {
 	bytes := []byte(data.String())
 	hash := md5.Sum(bytes)
 	signature := hex.EncodeToString(hash[:])
-	field := Field {"api_sig", signature}
+	field := Field{"api_sig", signature}
 	*fields = append(*fields, field)
 }
 
