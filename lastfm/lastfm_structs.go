@@ -52,7 +52,7 @@ type LastFMSession struct {
 type Date struct {
 	XMLName   xml.Name `xml:"date"`
 	Date      string   `xml:",chardata"`
-	TimeStamp int      `xml:"uts,attr"`
+	TimeStamp string   `xml:"uts,attr"`
 }
 
 func (d Date) String() string {

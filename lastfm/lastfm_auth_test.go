@@ -105,9 +105,8 @@ func TestNewAPIFromFile(t *testing.T) {
 	}
 }
 
-var api = LastFMAPI{APIKey: "0123456789", Secret: "abcdefg"}
-
 func TestGetToken(t *testing.T) {
+	var test_api = LastFMAPI{APIKey: "0123456789", Secret: "abcdefg"}
 	tests := []struct {
 		API           LastFMAPI
 		Output        string
@@ -116,7 +115,7 @@ func TestGetToken(t *testing.T) {
 		ExpectedError error
 	}{
 		{ // Normal operation
-			API:      api,
+			API:      test_api,
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -131,14 +130,14 @@ func TestGetToken(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{ // Bad HTTP Status
-			API:           api,
+			API:           test_api,
 			Output:        "",
 			HTTPCode:      http.StatusBadRequest,
 			ExpectedToken: LastFMToken{},
 			ExpectedError: ErrHTTPCode,
 		},
 		{ // Bad XML Parse
-			API:      api,
+			API:      test_api,
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><token>thisismytoken</token>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -153,7 +152,7 @@ func TestGetToken(t *testing.T) {
 			ExpectedError: ErrXMLParse,
 		},
 		{ // Bad Last.fm status
-			API:      api,
+			API:      test_api,
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="fail"><token>thisismytoken</token></lfm>`,
 			HTTPCode: http.StatusOK,
 			ExpectedToken: LastFMToken{
@@ -188,6 +187,7 @@ func TestGetToken(t *testing.T) {
 }
 
 func TestGetSession(t *testing.T) {
+	var test_api = LastFMAPI{APIKey: "0123456789", Secret: "abcdefg"}
 	tests := []struct {
 		API             LastFMAPI
 		Token           string
@@ -197,7 +197,7 @@ func TestGetSession(t *testing.T) {
 		ExpectedError   error
 	}{
 		{ // Normal operation
-			API:      api,
+			API:      test_api,
 			Token:    "token",
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
 			HTTPCode: http.StatusOK,
@@ -215,7 +215,7 @@ func TestGetSession(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{ // Bad HTTP Status
-			API:             api,
+			API:             test_api,
 			Token:           "token",
 			Output:          "",
 			HTTPCode:        http.StatusBadRequest,
@@ -223,7 +223,7 @@ func TestGetSession(t *testing.T) {
 			ExpectedError:   ErrHTTPCode,
 		},
 		{ // Bad HTTP Status but output
-			API:      api,
+			API:      test_api,
 			Token:    "token",
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>1</subscriber></session></lfm>`,
 			HTTPCode: http.StatusBadRequest,
@@ -241,7 +241,7 @@ func TestGetSession(t *testing.T) {
 			ExpectedError: ErrHTTPCode,
 		},
 		{ // Bad XML Parse
-			API:      api,
+			API:      test_api,
 			Token:    "token",
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="ok"><session><name>mostfm</name><key>session-key</key><subscriber>0</subscriber></session>`,
 			HTTPCode: http.StatusOK,
@@ -259,7 +259,7 @@ func TestGetSession(t *testing.T) {
 			ExpectedError: ErrXMLParse,
 		},
 		{ // Bad Last.fm status with error
-			API:      api,
+			API:      test_api,
 			Token:    "token",
 			Output:   `<?xml version="1.0" encoding="UTF-8"?><lfm status="failed"><error code="14">Unauthorized Token - This token has not been authorized</error></lfm>`,
 			HTTPCode: http.StatusOK,
