@@ -1,0 +1,3 @@
+[submodule "mostfm-site/themes/hugo-book"]
+	path = mostfm-site/themes/hugo-book
+	url = https://github.com/alex-shpak/hugo-book

@@ -1,6 +1,13 @@
-# most-fm
+# Most.fm
 
-A MatterMost bot for LastFM
+A [MatterMost](https://mattermost.com/) bot for [last.fm](https://www.last.fm/)
+
+## Install
+
+Most.fm can be installed from `http://app.mostfm.xyz` using the MatterMost app framework. Run the following command in the MatterMost server you want to install the bot in.
+```
+/apps install http http://app.mostfm.xyz
+```
 
 ## Build
 
