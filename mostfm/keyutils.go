@@ -17,16 +17,16 @@ func sessionKeyName(id string) string {
 	return fmt.Sprintf("most-fm-session-%s", id)
 }
 
-func GetUsername(c *appclient.Client, id string, username *string) error {
+func GetUsername(c *appclient.Client, id string) (username string, err error) {
 	usernameKey := usernameKeyName(id)
-	err := c.KVGet(keyPrefix, usernameKey, username)
-	return err
+	err = c.KVGet(keyPrefix, usernameKey, &username)
+	return
 }
 
-func GetSession(c *appclient.Client, id string, session *string) error {
+func GetSession(c *appclient.Client, id string) (session string, err error) {
 	sessionKey := sessionKeyName(id)
-	err := c.KVGet(keyPrefix, sessionKey, session)
-	return err
+	err = c.KVGet(keyPrefix, sessionKey, &session)
+	return
 }
 
 func SetUsername(c *appclient.Client, id string, username string) error {

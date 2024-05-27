@@ -24,7 +24,7 @@ var Manifest = apps.Manifest{
 	Version:     "v0.0.1",
 	DisplayName: "Most.fm",
 	Icon:        "mostfm.png",
-	HomepageURL: "https://github.com/JustinBird/most-fm",
+	HomepageURL: "https://mostfm.xyz",
 	RequestedPermissions: []apps.Permission{
 		apps.PermissionActAsBot,
 	},
@@ -35,6 +35,24 @@ var Manifest = apps.Manifest{
 	Deploy: apps.Deploy{
 		HTTP: &apps.HTTP{
 			RootURL: "http://mattermost-apps-golang-hello-world:4000",
+		},
+	},
+	OnInstall: &apps.Call{
+		Path: "/install",
+		Expand: &apps.Expand{
+			ActingUser: apps.ExpandID,
+		},
+	},
+	OnUninstall: &apps.Call{
+		Path: "/uninstall",
+		Expand: &apps.Expand{
+			ActingUser: apps.ExpandID,
+		},
+	},
+	OnVersionChanged: &apps.Call{
+		Path: "/version_changed",
+		Expand: &apps.Expand{
+			ActingUser: apps.ExpandID,
 		},
 	},
 }
@@ -85,10 +103,13 @@ func main() {
 	http.HandleFunc("/static/mostfm.png",
 		httputils.DoHandleData("image/png", IconData))
 
-	// Bindinings callback.
+	// Bindings callback.
 	http.HandleFunc("/bindings",
 		httputils.DoHandleJSON(apps.NewDataResponse(Bindings)))
 
+	http.HandleFunc("/install", api.InstallPost)
+	http.HandleFunc("/uninstall", api.UninstallPost)
+	http.HandleFunc("/version_changed", api.UpdatePost)
 	http.HandleFunc("/register", api.Register)
 	http.HandleFunc("/validate", api.Validate)
 	http.HandleFunc("/now-playing", api.NowPlaying)

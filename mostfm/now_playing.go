@@ -77,7 +77,7 @@ func (api MostFMAPI) NowPlaying(w http.ResponseWriter, req *http.Request) {
 	if ok && v != nil {
 		username = v.(string)
 	} else {
-		err := GetUsername(appclient.AsBot(c.Context), c.Context.ActingUser.Id, &username)
+		username, err := GetUsername(appclient.AsBot(c.Context), c.Context.ActingUser.Id)
 		if err != nil {
 			log.Print(err)
 			httputils.WriteJSON(w,
