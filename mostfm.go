@@ -66,8 +66,12 @@ var Bindings = []apps.Binding{
 				Icon:        "http://45.76.25.54:4000/static/mostfm.png",
 				Label:       "mostfm",
 				Description: "Most.fm",
-				Hint:        "[register|now-playing]",
+				Hint:        "[help|register|now-playing]",
 				Bindings: []apps.Binding{
+					{
+						Label: "help",
+						Form:  &mostfm.HelpForm,
+					},
 					{
 						Label: "register",
 						Submit: apps.NewCall("/register").WithExpand(apps.Expand{
@@ -110,6 +114,7 @@ func main() {
 	http.HandleFunc("/install", api.InstallPost)
 	http.HandleFunc("/uninstall", api.UninstallPost)
 	http.HandleFunc("/version_changed", api.UpdatePost)
+	http.HandleFunc("/help", api.Help)
 	http.HandleFunc("/register", api.Register)
 	http.HandleFunc("/validate", api.Validate)
 	http.HandleFunc("/now-playing", api.NowPlaying)

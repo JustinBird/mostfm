@@ -22,7 +22,7 @@ var NowPlayingForm = apps.Form{
 	Fields: []apps.Field{
 		{
 			Type: "text",
-			Name: "Username",
+			Name: "username",
 		},
 	},
 	Submit: apps.NewCall("/now-playing").WithExpand(apps.Expand{
@@ -73,7 +73,7 @@ func (api MostFMAPI) NowPlaying(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var username string
-	v, ok := c.Values["Username"]
+	v, ok := c.Values["username"]
 	if ok && v != nil {
 		username = v.(string)
 	} else {
